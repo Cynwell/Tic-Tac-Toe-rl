@@ -1,46 +1,82 @@
 from game_nn import TicTatToe, QNAgent
 from random import random, seed
 
+import warnings
+warnings.filterwarnings('ignore')
 
-agent = QNAgent()
-random_prob = 0.2
+o_agent = QNAgent()
+x_agent = QNAgent()
+random_prob = 0.5
 seed()
 
 x_win = []
 o_win = []
 draw = []
 statistic = [0, 0, 0] # O win, X win, draw
-for i in range(1000):
+for i in range(25000):
     env = TicTatToe()
-    state = env.state()
-    actions = env.valid_actions()
+    o_state = env.state()
+    o_actions = env.valid_actions()
     while True:
-        r = random()
-        player = env.current_player
-        action = agent.act(state, actions, player, r < random_prob)
-        reward = env.move(action)
-        next_state =  env.state()
-        next_actions = env.valid_actions()
-        experience = state, action, next_state, next_actions, reward, player
-        agent.train(experience)
-        if reward == 1:
-            statistic[player] += 1
-            break
-        elif env.check_draw():
+        o_action = o_agent.act(o_state, o_actions, random() < random_prob)
+        o_reward = env.move(o_action)
+        if env.check_draw():
             statistic[2] += 1
             break
+        elif o_reward == 1:
+            o_agent.train(o_state, o_action, o_next_state, o_next_actions, 1)
+            x_agent.train(x_state, x_action, x_next_state, x_next_actions, -1)
+            statistic[0] += 1
+            break
+        elif len(o_actions) < 9:
+            x_next_state = env.state()
+            x_next_actions = env.valid_actions()
+            x_agent.train(x_state, x_action, x_next_state, x_next_actions, 0)
+            x_state = x_next_state
+            x_actions = x_next_actions
         else:
-            states = next_state
-            actions = next_actions
-    if i != 0 and i % 20 == 0:
-        x_win.append(statistic[1] / 20)
-        o_win.append(statistic[0] / 20)
-        draw.append(statistic[2] / 20)
+            x_state =  env.state()
+            x_actions = env.valid_actions()
+        x_action = x_agent.act(x_state, x_actions, random() < random_prob)
+        x_reward = env.move(x_action)
+        o_next_state = env.state()
+        o_next_actions = env.valid_actions()
+        if x_reward == 1:
+            o_agent.train(o_state, o_action, o_next_state, o_next_actions, -1)
+            x_agent.train(x_state, x_action, x_next_state, x_next_actions, 1)
+            statistic[1] += 1
+            break
+        else:
+            o_agent.train(o_state, o_action, o_next_state, o_next_actions, 0)
+            o_state = o_next_state
+            o_actions = o_next_actions
+    if i != 0 and i % 100 == 0:
+        random_prob *= 0.99
+        print(i, 'games played')
+        o_win.append(statistic[0] / 100)
+        x_win.append(statistic[1] / 100)
+        draw.append(statistic[2] / 100)
         statistic = [0, 0, 0]
 
 
 import matplotlib.pyplot as plt
-plt.plot(x_win, c='orange')
-plt.plot(o_win, c='green')
-plt.plot(draw, c='blue')
+plt.plot(o_win, c='red')
+plt.plot(x_win, c='blue')
+plt.plot(draw, c='green')
 plt.show()
+
+
+env = TicTatToe()
+while True:
+    action = int(input('Your action:'))
+    reward = env.move(action)
+    env.visualize()
+    state = env.state()
+    if reward == 1 or env.check_draw():
+        break
+    actions = env.valid_actions()
+    action = x_agent.act(state, actions)
+    reward = env.move(action)
+    env.visualize()
+    if reward == 1 or env.check_draw():
+        break

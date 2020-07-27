@@ -64,8 +64,7 @@ class TicTatToe:
         print(s)
 
 
-
-class QNAgent(nn.Module):
+class QSAgent(nn.Module):
 
     def __init__(self):
         super(QNAgent, self).__init__()
@@ -80,25 +79,6 @@ class QNAgent(nn.Module):
         y = torch.tanh(self.fc3(x))
         return y
 
-    def train(self, experience, lr=0.6):
-        state, action, next_state, next_actions, reward, player = experience
-        if player == 1:
-            reward = -reward
-        if reward == 1 or len(next_actions) == 0:
-            next_best_q = 0
-        elif player == 0:
-            next_q = self.forward(next_state).view(9)
-            next_best_q = torch.min(next_q[next_actions])
-        else:
-            next_q = self.forward(next_state).view(9)
-            next_best_q = torch.max(next_q[next_actions])
-        current_q = self.forward(state)[0, action]
-        y = torch.tensor(reward + 0.9 * next_best_q)
-        loss = (current_q - y.detach()) ** 2
-        loss.backward()
-        self.optim.step()
-        self.optim.zero_grad()
-
     def act(self, state, actions, player, random=False):
         if random:
             actions = actions.tolist()
@@ -112,6 +92,44 @@ class QNAgent(nn.Module):
             a = self.forward(state).view(9)
             a = a[actions] # select valid Q values
             a = torch.argmin(a) # Select the index of best Q values
+            return int(actions[a])
+
+class QNAgent(nn.Module):
+
+    def __init__(self):
+        super(QNAgent, self).__init__()
+        self.fc1 = nn.Linear(27, 120)
+        self.fc2 = nn.Linear(120, 120)
+        self.fc3 = nn.Linear(120, 9)
+        self.optim = torch.optim.SGD(self.parameters(), lr=0.01)
+
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        y = torch.tanh(self.fc3(x))
+        return y
+
+    def train(self, state, action, next_state, next_actions, reward):
+        if reward != 0 or len(next_actions) == 0:
+            next_best_q = 0
+        else:
+            next_q = self.forward(next_state).view(9)
+            next_best_q = torch.max(next_q[next_actions])
+        current_q = self.forward(state)[0, action]
+        y = torch.tensor(reward + 0.9 * next_best_q)
+        loss = (current_q - y.detach()) ** 2
+        loss.backward()
+        self.optim.step()
+        self.optim.zero_grad()
+
+    def act(self, state, actions, random=False):
+        if random:
+            actions = actions.tolist()
+            return choice(actions)
+        else:
+            a = self.forward(state).view(9)
+            a = a[actions] # select valid Q values
+            a = torch.argmax(a) # Select the index of best Q values
             return int(actions[a])
 
 

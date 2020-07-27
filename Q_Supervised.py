@@ -1,6 +1,6 @@
 import pickle as pk
 import torch
-from game_nn import TicTatToe, QNAgent
+from game_nn import TicTatToe, QSAgent
 
 def s2tensor(s):
     s = eval(s)
@@ -21,7 +21,7 @@ def q2tensor(q):
 
 X = []
 Y = []
-f = open('q_table', 'rb')
+f = open('table', 'rb')
 q_table = pk.load(f)
 for s, q in q_table.items():
     s = s2tensor(s)
@@ -29,7 +29,7 @@ for s, q in q_table.items():
     X.append(s)
     Y.append(q)
 
-agent = QNAgent()
+agent = QSAgent()
 X = torch.stack(X, dim=0)
 Y = torch.stack(Y, dim=0)
 optim = torch.optim.SGD(agent.parameters(), lr=0.005)
