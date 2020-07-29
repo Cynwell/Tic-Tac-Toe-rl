@@ -2,6 +2,7 @@ import pickle as pk
 import torch
 from game_nn import TicTatToe, QSAgent
 
+# Transofrm string representation to tensor
 def s2tensor(s):
     s = eval(s)
     t = [0 for i in range(27)]
@@ -10,6 +11,7 @@ def s2tensor(s):
     t = t[9:] + t[:9]
     return torch.tensor(t).float()
 
+# Transofrm dictionary of Q-values to tensor
 def q2tensor(q):
     t = []
     for i in range(9):
@@ -19,6 +21,7 @@ def q2tensor(q):
             t.append(0.)
     return torch.tensor(t).float()
 
+# Read and put data into tensor format
 X = []
 Y = []
 f = open('table', 'rb')
@@ -29,11 +32,13 @@ for s, q in q_table.items():
     X.append(s)
     Y.append(q)
 
+# Create our agent and optimizer
 agent = QSAgent()
 X = torch.stack(X, dim=0)
 Y = torch.stack(Y, dim=0)
 optim = torch.optim.SGD(agent.parameters(), lr=0.005)
 
+# Training loop
 no_batch = len(q_table) // 100
 no_epoch = 200
 loss_record = []
@@ -54,7 +59,7 @@ for j in range(no_epoch):
     loss_record.append(total_loss)
     print(j, ' ', total_loss)
 
-
+# Test the resulting agent by playing against it
 env = TicTatToe()
 while True:
     action = int(input('Your action:'))
@@ -70,6 +75,3 @@ while True:
     if reward == 1 or env.check_draw():
         break
     
-
-
-

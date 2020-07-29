@@ -10,16 +10,19 @@ class TicTatToe:
         self.grid = [0 for i in range(18)] + [1 for i in range(9)]
         self.current_player = 0
 
+    # Change the game state according to the given move
     def move(self, pos):
         self.grid[pos + 18] = 0
         pos = self.current_player * 9 + pos
         self.grid[pos] = 1
         self.current_player = (self.current_player + 1) % 2
         return self.check_win()
-
+    
+    # Retrun true if no more moves available
     def check_draw(self):
         return sum(self.grid[18:]) == 0
 
+    # Retrun true if there is a winner
     def check_win(self):
         sum_check = []
         for i in [0, 9]:
@@ -39,10 +42,12 @@ class TicTatToe:
                 return 1
         return 0
 
+    # Return a torch tensor representing the board state
     def state(self):
         t = torch.tensor(self.grid).float()
         return t.view(1, 27)
 
+    # Return a list of valid actions within (0-8)
     def valid_actions(self):
         a = []
         for i in range(9):
@@ -50,6 +55,7 @@ class TicTatToe:
                 a.append(i)
         return torch.LongTensor(a)
 
+    # Print out the current board state
     def visualize(self):
         s = ''
         for i in range(9):
@@ -63,7 +69,7 @@ class TicTatToe:
                 s += '\n'
         print(s)
 
-
+# Agent for supervised learning
 class QSAgent(nn.Module):
 
     def __init__(self):
@@ -94,6 +100,7 @@ class QSAgent(nn.Module):
             a = torch.argmin(a) # Select the index of best Q values
             return int(actions[a])
 
+# Agent for reinforcement learning
 class QNAgent(nn.Module):
 
     def __init__(self):
@@ -111,12 +118,12 @@ class QNAgent(nn.Module):
 
     def train(self, state, action, next_state, next_actions, reward):
         if reward != 0 or len(next_actions) == 0:
-            next_best_q = 0
+            next_best_q = 0  # No next state if game ended
         else:
-            next_q = self.forward(next_state).view(9)
-            next_best_q = torch.max(next_q[next_actions])
+            next_q = self.forward(next_state).view(9) # Compute Q-values of next state
+            next_best_q = torch.max(next_q[next_actions]) # Choose the best Q-value
         current_q = self.forward(state)[0, action]
-        y = torch.tensor(reward + 0.9 * next_best_q)
+        y = torch.tensor(reward + 0.9 * next_best_q) # Update target
         loss = (current_q - y.detach()) ** 2
         loss.backward()
         self.optim.step()
@@ -131,5 +138,5 @@ class QNAgent(nn.Module):
             a = a[actions] # select valid Q values
             a = torch.argmax(a) # Select the index of best Q values
             return int(actions[a])
-
-
+            
+                   
