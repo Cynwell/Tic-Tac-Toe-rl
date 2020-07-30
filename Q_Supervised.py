@@ -1,6 +1,6 @@
 import pickle as pk
 import torch
-from game_nn import TicTatToe, QSAgent
+from game_nn import TicTacToe, QSAgent
 
 # Transofrm string representation to tensor
 def s2tensor(s):
@@ -60,7 +60,7 @@ for j in range(no_epoch):
     print(j, ' ', total_loss)
 
 # Test the resulting agent by playing against it
-env = TicTatToe()
+env = TicTacToe()
 while True:
     action = int(input('Your action:'))
     reward = env.move(action)
@@ -69,7 +69,7 @@ while True:
     if reward == 1 or env.check_draw():
         break
     actions = env.valid_actions()
-    action = agent.act(state, actions, 1)
+    action = agent.act(state, actions)
     reward = env.move(action)
     env.visualize()
     if reward == 1 or env.check_draw():

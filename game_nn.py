@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 from random import choice
 
-class TicTatToe:
+class TicTacToe:
 
     def __init__(self):
         self.grid = [0 for i in range(18)] + [1 for i in range(9)]
@@ -85,11 +85,8 @@ class QSAgent(nn.Module):
         y = torch.tanh(self.fc3(x))
         return y
 
-    def act(self, state, actions, player, random=False):
-        if random:
-            actions = actions.tolist()
-            return choice(actions)
-        elif player == 0:
+    def act(self, state, actions, player):
+        if player == 0:
             a = self.forward(state).view(9)
             a = a[actions] # select valid Q values
             a = torch.argmax(a) # Select the index of best Q values

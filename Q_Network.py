@@ -1,4 +1,4 @@
-from game_nn import TicTatToe, QNAgent
+from game_nn import TicTacToe, QNAgent
 from random import random, seed
 
 import warnings
@@ -18,7 +18,7 @@ statistic = [0, 0, 0] # O win, X win, draw
 
 # Training loop
 for i in range(25000):
-    env = TicTatToe() # Reinitialize board
+    env = TicTacToe() # Reinitialize board
     o_state = env.state()
     o_actions = env.valid_actions()
     while True:
@@ -70,7 +70,7 @@ plt.plot(draw, c='green')
 plt.show()
 
 # Test the resulting agent by playing against it
-env = TicTatToe()
+env = TicTacToe()
 while True:
     action = int(input('Your action:'))
     reward = env.move(action)
